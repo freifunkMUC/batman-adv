@@ -32,6 +32,8 @@
 #include <linux/ethtool.h>
 #include <linux/etherdevice.h>
 #include <linux/if_vlan.h>
+#include <linux/ip.h>
+#include <linux/ipv6.h>
 #include "multicast.h"
 #include "bridge_loop_avoidance.h"
 #include "network-coding.h"
@@ -363,6 +365,9 @@ void batadv_interface_rx(struct net_device *soft_iface,
 	struct ethhdr *ethhdr;
 	unsigned short vid;
 	bool is_bcast;
+	struct ipv6hdr *ipv6hdr;
+	struct icmp6hdr *icmp6hdr;
+	uint8_t *gwaddr = batadv_gw_get_selected_orig(bat_priv)->orig;
 
 	batadv_bcast_packet = (struct batadv_bcast_packet *)skb->data;
 	is_bcast = (batadv_bcast_packet->packet_type == BATADV_BCAST);
@@ -440,6 +445,32 @@ void batadv_interface_rx(struct net_device *soft_iface,
 		goto dropped;
 	}
 
+	if (ethhdr->h_proto == htons(ETH_P_IPV6)) {
+		if (!pskb_may_pull(skb, sizeof(*ipv6hdr) + sizeof(*icmp6hdr)))
+			goto send;
+
+		ipv6hdr = (struct ipv6hdr *)(skb->data);
+
+		if (ipv6hdr->nexthdr == IPPROTO_ICMPV6) {
+			icmp6hdr = (struct icmp6hdr *)(skb->data + sizeof(*ipv6hdr));
+
+			if(orig_node == NULL)
+				goto send;
+
+			if (icmp6hdr->icmp6_type == NDISC_ROUTER_ADVERTISEMENT) {
+				/* no gateway selected yet, drop all router advertisements */
+				if (gwaddr == NULL)
+					goto dropped;
+
+				/* Only send router advertisements from current gateway */
+				if (memcmp(orig_node->orig, gwaddr, ETH_ALEN) != 0) {
+					goto dropped;
+				}
+			}
+		}
+	}
+
+send:
 	netif_rx(skb);
 	goto out;
 

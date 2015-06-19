@@ -369,8 +369,10 @@ void batadv_interface_rx(struct net_device *soft_iface,
 	struct icmp6hdr *icmp6hdr;
 	struct batadv_orig_node *curr_gw_orig;
 	curr_gw_orig = batadv_gw_get_selected_orig(bat_priv);
-	if (!curr_gw_orig)
-		goto reselect;
+	if (!curr_gw_orig) {
+		batadv_gw_reselect(bat_priv);
+		goto out;
+	}
 	uint8_t *gwaddr = curr_gw_orig->orig;
 
 	batadv_bcast_packet = (struct batadv_bcast_packet *)skb->data;
@@ -477,9 +479,6 @@ void batadv_interface_rx(struct net_device *soft_iface,
 send:
 	netif_rx(skb);
 	goto out;
-
-reselect:
-	batadv_gw_reselect(bat_priv);
 
 dropped:
 	kfree_skb(skb);

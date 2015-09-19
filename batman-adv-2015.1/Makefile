@@ -72,6 +72,6 @@ install: config
 	depmod -a
 
 config:
-	$(PWD)/gen-compat-autoconf.sh $(PWD)/compat-autoconf.h
+	sh $(PWD)/gen-compat-autoconf.sh $(PWD)/compat-autoconf.h
 
 .PHONY: all clean install config

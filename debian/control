@@ -1,0 +1,11 @@
+Source: batman-adv-dkms
+Section: misc
+Priority: optional
+Maintainer: Franz Pletz <fpletz@fnordicwalking.de>
+Build-Depends: debhelper (>= 7), dkms
+Standards-Version: 3.8.1
+
+Package: batman-adv-dkms
+Architecture: all
+Depends: dkms (>= 1.95), ${misc:Depends}
+Description: B.A.T.M.A.N. Advanced driver in DKMS format.

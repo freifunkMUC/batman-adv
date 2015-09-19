@@ -1,0 +1,7 @@
+batman-adv-dkms (2015.1) UNRELEASED; urgency=low
+
+  * Initial DKMS packaging.
+
+ -- Franz Pletz <fpletz@fnordicwalking.de>  Sat, 19 Sep 2015 17:16:09 +0200
+
+
